@@ -77,7 +77,7 @@ for day in runTimesByDayByBoss:
       dayKey = item
     elif isinstance(item, list):
       bossKey = item[0]
-      jsonData['Day of Week'][dayKey][bossKey] = item[1:]
+      jsonData[dayKey][bossKey] = item[1:]
     else:
       raise RuntimeError(f'Built my list wrong: {item}')
 
