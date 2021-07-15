@@ -12,15 +12,20 @@ class ScheduledRunTime:
   def __repr__(self):
     return self.__str__()
 
-def convertTo24Hour(timeToConvert : str, amOrPm : str):
+def convertTo24Hour(timeToConvert : str, amOrPm : str, timezone : str):
   """Convert 12 hour time format to 24 hour time format.
 
   :param timeToConvert: 12 hour time format with a colon, e.g., '5:00'
   :param amOrPm: This string should say either 'AM' or 'PM'
+  :param timezone: Capital two-letter abbreviation for the timezone
 
+  :raises RuntimeError: When the timezone is unsupported
   :raises RuntimeError: When amOrPm is not a valid string
   :raises RuntimeError: When the converted time is invalid
   """
+  if timezone != 'PT':
+    raise RuntimeError(f'convertTo24Hour() - Unsupported timezone {timezone}')
+
   if amOrPm == 'AM':
     isAM = True
   elif amOrPm == 'PM':
@@ -63,7 +68,7 @@ with open('ccg-schedule-raw.txt', 'r') as inputFile:
         # Append boss name
         runTimesByDayByBoss[-1].append([contentsGrouping[0]])
         # Convert 12 hour time format to 24 hour time format
-        scheduledRunTime = convertTo24Hour(contentsGrouping[10], contentsGrouping[11])
+        scheduledRunTime = convertTo24Hour(contentsGrouping[10], contentsGrouping[11], contentsGrouping[12])
         runTimesByDayByBoss[-1][-1].append(scheduledRunTime)
       # Append to existing boss list within the day
       else:
@@ -71,7 +76,7 @@ with open('ccg-schedule-raw.txt', 'r') as inputFile:
         for item in runTimesByDayByBoss[-1]:
           if contentsGrouping[0] in item:
             # Convert 12 hour time format to 24 hour time format
-            scheduledRunTime = convertTo24Hour(contentsGrouping[10], contentsGrouping[11])
+            scheduledRunTime = convertTo24Hour(contentsGrouping[10], contentsGrouping[11], contentsGrouping[12])
             item.append(scheduledRunTime)
       allScheduledRunTimes.append(
         ScheduledRunTime(dayOfWeek=runTimesByDayByBoss[-1][0],
