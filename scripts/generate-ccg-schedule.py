@@ -7,7 +7,7 @@ class ScheduledRunTime:
     self.scheduledRunTime = scheduledRunTime
   
   def __str__(self):
-    return f'{self.dayOfWeek}, {self.scheduledRunTime}, {self.typeOfBoss}'
+    return f'{self.dayOfWeek},{self.scheduledRunTime},{self.typeOfBoss}'
   
   def __repr__(self):
     return self.__str__()
@@ -85,7 +85,7 @@ with open('ccg-schedule-raw.txt', 'r') as inputFile:
       ))
 
 # pprint(runTimesByDayByBoss)
-pprint(allScheduledRunTimes)
+# pprint(allScheduledRunTimes)
 import json
 
 # Load template file
