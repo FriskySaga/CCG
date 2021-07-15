@@ -81,8 +81,8 @@ for day in runTimesByDayByBoss:
     else:
       raise RuntimeError(f'Built my list wrong: {item}')
 
-# Create the CCG Schedule file
+# Create the JSON CCG Schedule file
 import os
-outputFilePath = os.path.join('..', 'ccg-schedule.json')
-with open(outputFilePath, 'w', encoding='utf-8') as outputFile:
+jsonOutputFilePath = os.path.join('..', 'ccg-schedule.json')
+with open(jsonOutputFilePath, 'w', encoding='utf-8') as outputFile:
   json.dump(jsonData, outputFile, ensure_ascii=False, indent=2)
