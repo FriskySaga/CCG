@@ -1,3 +1,4 @@
-auth.json
+config/auth.json
+*.pyc
 test.out
 test.py
