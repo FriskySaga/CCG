@@ -27,58 +27,19 @@ async def on_ready():
 
   greetings = [
     "Sleep is for the weak...",
-    "I SHALL NOT GO TO SLEEP",
+    "I SHAN'T GO TO SLEEP",
     "I have been awakened from my slumber...",
-    "Are you tired? You've been running around my mind all day.",
     "What's the craic?",
     "How hops it?",
     "Ahoy, avast~!",
-    "Luffy's mom is Croco-boy",
     "Fear not! I am here!",
-    "DETROIT SMAAAAASH",
     "Salutations, friend(s)!",
-    "Ohayogozaimasu, o genki desu ka?",
-    "Wanna know edgy?",
     "What does clickbait taste like?",
     "Like you've fallen through a trapdoor of sorrow.",
   ]
   await channel.send(choice(greetings))
 
   TimedReminder(bot, serverIds, scheduleParser).annoy.start()
-
-disconnectAliases = ['kys', 'killYourself', 'gokys', 'gokyspls', 'godie', 'goToBed', 'godieinahole',
-                     'vanishThineExistence', 'quit', 'die', 'begone', 'destroy', 'dc']
-
-@bot.command(aliases=disconnectAliases)
-async def disconnect(ctx : commands.Context):
-  """Disconnect the bot."""
-  endings = [
-    "nooo rusttyyyyy",
-    "Committing sudoku",
-    "actually dying",
-    "seppuku i shall",
-    "why are you doing this to me",
-    "Goodnight! <3",
-  ]
-  print(f"{bot.user} is disconnecting.")
-  await ctx.channel.send(f"{ctx.author.mention} {choice(endings)}")
-  await bot.close()
-
-@bot.command(aliases=['howkill', 'howtokill', 'howKill', 'HOWTOKILL'])
-async def howToKill(ctx : commands.Context):
-  global disconnectAliases
-  disconnectAliases.append('disconnect') if 'disconnect' not in disconnectAliases else disconnectAliases
-  await ctx.channel.send(f"{ctx.author.mention} {disconnectAliases}")
-
-@bot.command(aliases=['meme', 'dumbquote'])
-async def quote(ctx : commands.Context):
-  """Make dumb quotes."""
-  dumbQuotes = [
-    "Every 60 seconds, a minute passes in Africa.",
-    "People die when they are killed.",
-    "Water is wet.",
-  ]
-  await ctx.channel.send(choice(dumbQuotes))
 
 async def alertNextBoss(ctx : commands.Context, bossName : str):
   """Answer the user request for the next time to conquer the target boss.
