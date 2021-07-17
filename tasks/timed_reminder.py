@@ -5,6 +5,8 @@ from discord.ext.commands.bot import Bot
 from os import path
 from pytz import timezone
 
+from common.common import convertBasicTimeToDateTime
+
 PATH_TO_SCHEDULES = path.join('schedules')
 
 class TimedReminder(commands.Cog):
@@ -32,28 +34,29 @@ class TimedReminder(commands.Cog):
       # Loop through ascending times
       for row in csvReader:
         if currentDayOfWeek == row[0]:
-          timeToCheck = row[1].split(':')
-          timeToCheck = now.replace(hour=int(timeToCheck[0]),
-                                    minute=int(timeToCheck[1]),
-                                    second=0,
-                                    microsecond=0)
+          timeToCheck = convertBasicTimeToDateTime(row[1], now)
+
           # Find the next run time
           if now < timeToCheck:
             self.nextRunInfo = row
             self.nextRunInfo[1] = timeToCheck
             break
 
+    # If this is a new run, enable the bot to send a message
     if self.prevRunInfo != self.nextRunInfo:
       self.annoyed = False
       self.prevRunInfo = self.nextRunInfo
-    
+
+    minutesBeforeEventToRemind = 5
     nextRunTime = self.nextRunInfo[1]
 
-    minuteTolerance = 5
+    # Send the message for this run if it hasn't yet been sent
     if (not self.annoyed
-        and now >= nextRunTime - timedelta(minutes=minuteTolerance)
+        and now >= nextRunTime - timedelta(minutes=minutesBeforeEventToRemind)
         and now <= nextRunTime):
       await channel.send(
         f"{ccgRunRemindee.mention} {self.nextRunInfo[2]} within the next "
-        f"{minuteTolerance} minutes at {nextRunTime.strftime('%I:%M %p')} Pacific Time")
+        f"{minutesBeforeEventToRemind} minutes at "
+        f"{nextRunTime.strftime('%I:%M %p')} Pacific Time")
       self.annoyed = True
+
