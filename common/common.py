@@ -65,7 +65,7 @@ class ScheduleParser:
     todaysRuns.reset_index(drop=True, inplace=True)
 
     todaysRuns = todaysRuns.assign(date_time=dateTimeSeries)
-
+    print("date is:", todaysRuns)
     return todaysRuns.loc[todaysRuns['date_time'] >= now]
 
   def findNextBossRunOfAnyType(self) -> tuple[tuple[pd.DataFrame, datetime], relativedelta]:
