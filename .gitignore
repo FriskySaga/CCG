@@ -1,5 +1,4 @@
 config/auth.json
 tasks/__pycache__/
 *.pyc
-test.out
 test.py
