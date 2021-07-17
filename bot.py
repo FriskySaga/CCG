@@ -72,7 +72,7 @@ async def nextCJ(ctx : commands.Context):
 async def nextCEO(ctx : commands.Context):
   await alertNextBoss(ctx, 'CEO')
 
-@bot.command()
+@bot.command(aliases=['killYourself', 'gokys', 'gokyspls', 'godie', 'goToBed', 'godieinahole', 'vanishThineExistence'])
 async def kys(ctx : commands.Context):
   endings = [
     "nooo rusttyyyyy",
@@ -84,37 +84,6 @@ async def kys(ctx : commands.Context):
     "i'm actually kinda tired from all this programming",
   ]
   await ctx.channel.send(choice(endings))
-  await bot.close()
-
-@bot.command()
-async def killYourself(ctx : commands.Context):
-  await kys.invoke(ctx)
-
-@bot.command()
-async def gokys(ctx : commands.Context):
-  await kys.invoke(ctx)
-
-@bot.command()
-async def gokyspls(ctx : commands.Context):
-  await kys.invoke(ctx)
-
-@bot.command()
-async def godie(ctx : commands.Context):
-  await kys.invoke(ctx)
-
-@bot.command()
-async def goToBed(ctx : commands.Context):
-  await kys.invoke(ctx)
-  await bot.logout()
-
-@bot.command()
-async def goDieInAHole(ctx : commands.Context):
-  await kys.invoke(ctx)
-  await bot.close()
-
-@bot.command()
-async def godieinahole(ctx : commands.Context):
-  await kys.invoke(ctx)
   await bot.close()
 
 bot.run(auth['token'])
