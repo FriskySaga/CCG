@@ -1,4 +1,7 @@
+import os
 from pprint import pprint
+
+PATH_TO_SCHEDULES = os.path.join('..', 'schedules')
 
 class ScheduledRunTime:
   def __init__(self, dayOfWeek : str, typeOfBoss : str, scheduledRunTime : str):
@@ -6,13 +9,13 @@ class ScheduledRunTime:
     self.typeOfBoss = typeOfBoss
     self.scheduledRunTime = scheduledRunTime
   
-  def __str__(self):
+  def __str__(self) -> str:
     return f'{self.dayOfWeek},{self.scheduledRunTime},{self.typeOfBoss}'
   
-  def __repr__(self):
+  def __repr__(self) -> str:
     return self.__str__()
 
-def convertTo24Hour(timeToConvert : str, amOrPm : str, timezone : str):
+def convertTo24Hour(timeToConvert : str, amOrPm : str, timezone : str) -> str:
   """Convert 12 hour time format to 24 hour time format.
 
   :param timeToConvert: 12 hour time format with a colon, e.g., '5:00'
@@ -22,6 +25,8 @@ def convertTo24Hour(timeToConvert : str, amOrPm : str, timezone : str):
   :raises RuntimeError: When the timezone is unsupported
   :raises RuntimeError: When amOrPm is not a valid string
   :raises RuntimeError: When the converted time is invalid
+
+  :return: The 24 hour time format
   """
   if timezone != 'PT':
     raise RuntimeError(f'convertTo24Hour() - Unsupported timezone {timezone}')
@@ -54,7 +59,10 @@ def convertTo24Hour(timeToConvert : str, amOrPm : str, timezone : str):
 #  ['Monday', etc.]]
 allScheduledRunTimes = []
 runTimesByDayByBoss = []
-with open('ccg_schedule_raw.txt', 'r') as inputFile:
+
+rawCcgSchedulePath = os.path.join(PATH_TO_SCHEDULES, 'ccg_schedule_raw.txt')
+
+with open(rawCcgSchedulePath, 'r') as inputFile:
   for line in inputFile:
     lineText = line.rstrip()
     if not lineText:
@@ -89,7 +97,9 @@ with open('ccg_schedule_raw.txt', 'r') as inputFile:
 import json
 
 # Load template file
-templateFile = open('ccg_schedule_template.json', 'r')
+ccgScheduleTemplatePath = os.path.join(PATH_TO_SCHEDULES, 'ccg_schedule_template.json')
+
+templateFile = open(ccgScheduleTemplatePath, 'r')
 jsonData = json.load(templateFile)
 templateFile.close()
 
@@ -112,13 +122,12 @@ for day in runTimesByDayByBoss:
       raise RuntimeError(f'Built my list wrong: {item}')
 
 # Create the JSON CCG Schedule file
-import os
-jsonOutputFilePath = os.path.join('..', 'ccg_schedule.json')
+jsonOutputFilePath = os.path.join(PATH_TO_SCHEDULES, 'ccg_schedule.json')
 with open(jsonOutputFilePath, 'w', encoding='utf-8') as outputFile:
   json.dump(jsonData, outputFile, ensure_ascii=False, indent=2)
 
 # Build a CSV file sorted by ascending time
-csvOutputFilePath = os.path.join('..', 'ccg_schedule_ascending_times.csv')
+csvOutputFilePath = os.path.join(PATH_TO_SCHEDULES, 'ccg_schedule_ascending_times.csv')
 with open(csvOutputFilePath, 'w') as csvOutputFile:
   for line in allScheduledRunTimes:
     csvOutputFile.write(line.__str__() + '\n')

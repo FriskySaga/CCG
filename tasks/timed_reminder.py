@@ -5,6 +5,8 @@ from discord.ext.commands.bot import Bot
 from os import path
 from pytz import timezone
 
+PATH_TO_SCHEDULES = path.join('schedules')
+
 class TimedReminder(commands.Cog):
   def __init__(self, bot : Bot, serverIds : dict):
     self.bot = bot
@@ -14,6 +16,8 @@ class TimedReminder(commands.Cog):
 
   @tasks.loop(seconds=60)
   async def annoy(self):
+    """Ping peeps some number of minutes before a boss run.
+    """
     ccgGuild = self.bot.get_guild(self.serverIds['Guild'])
     ccgRunRemindee = ccgGuild.get_role(self.serverIds['Role'])
     channel = self.bot.get_channel(self.serverIds['Channel'])
@@ -21,7 +25,7 @@ class TimedReminder(commands.Cog):
     now = datetime.now(timezone('US/Pacific'))
     currentDayOfWeek = now.strftime('%A')
 
-    csvFilePath = path.join('ccg_schedule_ascending_times.csv')
+    csvFilePath = path.join(PATH_TO_SCHEDULES, 'ccg_schedule_ascending_times.csv')
 
     with open(csvFilePath, 'r') as csvFile:
       csvReader = reader(csvFile)
