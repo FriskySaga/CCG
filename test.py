@@ -1,8 +1,8 @@
-import csv
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import json
 import os
+import pandas as pd
 from pprint import pprint
 from pytz import timezone
 
@@ -26,27 +26,20 @@ def testCSV():
 
   nextRunInfo = None
 
-  csvScheduleFilePath = os.path.join('schedules', 'ccg-schedule-ascending-times.csv')
+  csvScheduleFilePath = os.path.join('schedules', 'ccg_schedule_ascending_times.csv')
+  csvDf = pd.read_csv(csvScheduleFilePath)
+  dfScheduledRunsForToday = csvDf.loc[csvDf['day_of_week'] == currentDayOfWeek]
+  for row in dfScheduledRunsForToday.itertuples():
+    timeToCheck = convertBasicTimeToDateTime(row.scheduled_run_time, now)
+    if now < timeToCheck:
+      nextRunInfo = (row, timeToCheck)
+      break
 
-  with open(csvScheduleFilePath, 'r') as csvFile:
-    csvReader = csv.reader(csvFile)
-    # Loop through ascending times
-    for row in csvReader:
-      if currentDayOfWeek == row[0]:
-        timeToCheck = convertBasicTimeToDateTime(row[1], now)
-        # Find the next run time
-        if now < timeToCheck:
-          nextRunInfo = row
-          nextRunInfo[1] = timeToCheck
-          break
+  nextRunTime = nextRunInfo[-1]
 
-  nextRunTime = nextRunInfo[1]
-
-  # if (currentTime >= nextRunTime - timedelta(minutes=180)
-  #     and currentTime <= nextRunTime):
   if (now >= nextRunTime - timedelta(minutes=180)
       and now <= nextRunTime):
-    print(f"{nextRunInfo[2]} within the next 180 minutes at {nextRunTime.strftime('%I:%M %p')} PT")
+    print(f"{nextRunInfo[0].boss_name} within the next 180 minutes at {nextRunTime.strftime('%I:%M %p')} PT")
 
 def testJSON():
   jsonScheduleFilePath = os.path.join('schedules', 'ccg_schedule.json')
@@ -76,4 +69,5 @@ def testJSON():
   print(f"{bossName} in {rd.hours} hours and {rd.minutes} minutes from now")
 
 if __name__ == '__main__':
-  testJSON()
+  testCSV()
+  # testJSON()

@@ -129,5 +129,6 @@ with open(jsonOutputFilePath, 'w', encoding='utf-8') as outputFile:
 # Build a CSV file sorted by ascending time
 csvOutputFilePath = os.path.join(PATH_TO_SCHEDULES, 'ccg_schedule_ascending_times.csv')
 with open(csvOutputFilePath, 'w') as csvOutputFile:
+  csvOutputFile.write('day_of_week,scheduled_run_time,boss_name\n')
   for line in allScheduledRunTimes:
     csvOutputFile.write(line.__str__() + '\n')
