@@ -32,7 +32,6 @@ async def on_ready():
     "How hops it?",
     "Ahoy, avast~!",
     "Luffy's mom is Croco-boy",
-    "There I am!",
     "Fear not! I am here!",
     "DETROIT SMAAAAASH",
     "Salutations, friend(s)!",
