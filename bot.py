@@ -1,4 +1,5 @@
 from discord.ext import commands
+import discord
 from json import load
 from os.path import join
 from random import choice
@@ -108,6 +109,16 @@ async def nextBossRun(ctx : commands.Context):
 
 @bot.command(aliases=['remindMe', 'remindme', 'allruns', 'hippotamus'])
 async def allRuns(ctx : commands.Context):
-  await ctx.channel.send(str(scheduleParser.findAllRuns()))
+  min_array_val = min(scheduleParser.findAllRuns().index.values)
+  max_array_val = max(scheduleParser.findAllRuns().index.values)
+  mlh_message = discord.Embed(
+            title="CCG Runs", description="Current CCG runs for today"
+        )
+  for i in range(min_array_val, max_array_val):
+    mlh_message.add_field(
+      name=scheduleParser.findAllRuns()["boss_name"][i],
+      value=scheduleParser.findAllRuns()["scheduled_run_time"][i] + "\t" + str(scheduleParser.findAllRuns()["date_time"][i])
+    )
+  await ctx.channel.send(embed=mlh_message)
 
 bot.run(auth['token'])
