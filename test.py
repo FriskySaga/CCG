@@ -41,6 +41,28 @@ def testCSV():
       and now <= nextRunTime):
     print(f"{nextRunInfo[0].boss_name} within the next 180 minutes at {nextRunTime.strftime('%I:%M %p')} PT")
 
+def testCSV2():
+  # now1 = datetime.now()
+  # print(now1)
+  now = datetime.now(timezone('US/Pacific'))
+  # print(now)
+  currentDayOfWeek = now.strftime('%A')
+
+  csvScheduleFilePath = os.path.join('schedules', 'ccg_schedule_ascending_times.csv')
+  csvDf = pd.read_csv(csvScheduleFilePath)
+
+  todaysRuns = csvDf.loc[csvDf['day_of_week'] == currentDayOfWeek]
+  dateTimeList = []
+  for scheduledRunTime in todaysRuns['scheduled_run_time']:
+    tmp = convertBasicTimeToDateTime(scheduledRunTime, now)
+    dateTimeList.append(tmp)
+  dateTimeSeries = pd.Series(dateTimeList)
+  todaysRuns.reset_index(drop=True, inplace=True)
+  todaysRuns = todaysRuns.assign(date_time=dateTimeSeries)
+  # print(todaysRuns)
+
+  print(todaysRuns.loc[todaysRuns['date_time'] >= now])
+
 def testJSON():
   jsonScheduleFilePath = os.path.join('schedules', 'ccg_schedule.json')
   jsonScheduleFile = open(jsonScheduleFilePath, 'r')
@@ -69,5 +91,6 @@ def testJSON():
   print(f"{bossName} in {rd.hours} hours and {rd.minutes} minutes from now")
 
 if __name__ == '__main__':
-  testCSV()
+  # testCSV()
+  testCSV2()
   # testJSON()

@@ -46,7 +46,7 @@ async def on_ready():
   TimedReminder(bot, serverIds, scheduleParser).annoy.start()
 
 disconnectAliases = ['kys', 'killYourself', 'gokys', 'gokyspls', 'godie', 'goToBed', 'godieinahole',
-                     'vanishThineExistence', 'quit', 'die', 'begone', 'disconnect']
+                     'vanishThineExistence', 'quit', 'die', 'begone', 'destroy', 'dc']
 
 @bot.command(aliases=disconnectAliases)
 async def disconnect(ctx : commands.Context):
@@ -63,8 +63,10 @@ async def disconnect(ctx : commands.Context):
   await ctx.channel.send(f"{ctx.author.mention} {choice(endings)}")
   await bot.close()
 
-@bot.command(aliases=['howkill', 'howtokill', 'howKill'])
+@bot.command(aliases=['howkill', 'howtokill', 'howKill', 'HOWTOKILL'])
 async def howToKill(ctx : commands.Context):
+  global disconnectAliases
+  disconnectAliases.append('disconnect') if 'disconnect' not in disconnectAliases else disconnectAliases
   await ctx.channel.send(f"{ctx.author.mention} {disconnectAliases}")
 
 async def alertNextBoss(ctx : commands.Context, bossName : str):
@@ -100,8 +102,12 @@ async def nextCJ(ctx : commands.Context):
 async def nextCEO(ctx : commands.Context):
   await alertNextBoss(ctx, 'CEO')
 
-@bot.command(aliases=['next', 'nextBoss', 'remindMe', 'remindme'])
+@bot.command(aliases=['next', 'nextBoss'])
 async def nextBossRun(ctx : commands.Context):
   await alertNextBoss(ctx, 'Any')
+
+@bot.command(aliases=['remindMe', 'remindme', 'allruns', 'hippotamus'])
+async def allRuns(ctx : commands.Context):
+  await ctx.channel.send(str(scheduleParser.findAllRuns()))
 
 bot.run(auth['token'])

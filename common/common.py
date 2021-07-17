@@ -48,6 +48,26 @@ class ScheduleParser:
     self.csvDf = readCsvSchedule(self.pathToSchedules)
     self.jsonData = readJsonSchedule(self.pathToSchedules)
 
+  def findAllRuns(self) -> pd.DataFrame:
+    """Find all runs for today.
+    """
+    now = datetime.now(timezone('US/Pacific'))
+    currentDayOfWeek = now.strftime('%A')
+
+    todaysRuns = self.csvDf.loc[self.csvDf['day_of_week'] == currentDayOfWeek]
+
+    dateTimeList = []
+    for scheduledRunTime in todaysRuns['scheduled_run_time']:
+      dateTimeList.append(convertBasicTimeToDateTime(scheduledRunTime, now))
+
+    dateTimeSeries = pd.Series(dateTimeList)
+
+    todaysRuns.reset_index(drop=True, inplace=True)
+
+    todaysRuns = todaysRuns.assign(date_time=dateTimeSeries)
+
+    return todaysRuns.loc[todaysRuns['date_time'] >= now]
+
   def findNextBossRunOfAnyType(self) -> tuple[tuple[pd.DataFrame, datetime], relativedelta]:
     """Find the next boss run from the current time irregardless of boss type.
 
