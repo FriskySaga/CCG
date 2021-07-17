@@ -70,6 +70,16 @@ async def howToKill(ctx : commands.Context):
   disconnectAliases.append('disconnect') if 'disconnect' not in disconnectAliases else disconnectAliases
   await ctx.channel.send(f"{ctx.author.mention} {disconnectAliases}")
 
+@bot.command(aliases=['meme', 'dumbquote'])
+async def quote(ctx : commands.Context):
+  """Make dumb quotes."""
+  dumbQuotes = [
+    "Every 60 seconds, a minute passes in Africa.",
+    "People die when they are killed.",
+    "Water is wet.",
+  ]
+  await ctx.channel.send(choice(dumbQuotes))
+
 async def alertNextBoss(ctx : commands.Context, bossName : str):
   """Answer the user request for the next time to conquer the target boss.
 
