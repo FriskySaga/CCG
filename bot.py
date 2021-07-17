@@ -117,18 +117,18 @@ async def nextCEO(ctx : commands.Context):
 async def nextBossRun(ctx : commands.Context):
   await alertNextBoss(ctx, 'Any')
 
-@bot.command(aliases=['remindMe', 'remindme', 'allruns', 'hippotamus'])
+@bot.command(aliases=['remindMe', 'remindme', 'allruns'])
 async def allRuns(ctx : commands.Context):
   min_array_val = min(scheduleParser.findAllRuns().index.values)
   max_array_val = max(scheduleParser.findAllRuns().index.values)
-  mlh_message = discord.Embed(
+  embed = discord.Embed(
             title="CCG Runs", description="Current CCG runs for today"
         )
   for i in range(min_array_val, max_array_val):
-    mlh_message.add_field(
+    embed.add_field(
       name=scheduleParser.findAllRuns()["boss_name"][i],
-      value=scheduleParser.findAllRuns()["scheduled_run_time"][i] + "\t" + str(scheduleParser.findAllRuns()["date_time"][i])
+      value=scheduleParser.findAllRuns()["date_time"][i].strftime('%I:%M %p') + ' Pacific Time'
     )
-  await ctx.channel.send(embed=mlh_message)
+  await ctx.channel.send(embed=embed)
 
 bot.run(auth['token'])
