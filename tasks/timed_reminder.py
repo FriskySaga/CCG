@@ -21,23 +21,6 @@ class TimedReminder(commands.Cog):
     ccgRunRemindee = ccgGuild.get_role(self.serverIds['Role'])
     channel = self.bot.get_channel(self.serverIds['Channel'])
 
-    # now = datetime.now(timezone('US/Pacific'))
-    # currentDayOfWeek = now.strftime('%A')
-
-    # csvFilePath = path.join(PATH_TO_SCHEDULES, 'ccg_schedule_ascending_times.csv')
-
-    # with open(csvFilePath, 'r') as csvFile:
-    #   csvReader = reader(csvFile)
-    #   # Loop through ascending times
-    #   for row in csvReader:
-    #     if currentDayOfWeek == row[0]:
-    #       timeToCheck = convertBasicTimeToDateTime(row[1], now)
-
-    #       # Find the next run time
-    #       if now < timeToCheck:
-    #         self.nextRunInfo = row
-    #         self.nextRunInfo[1] = timeToCheck
-    #         break
     self.nextRunInfo, rd = self.scheduleParser.findNextBossRunOfAnyType()
 
     # If this is a new run, enable the bot to send a message

@@ -45,8 +45,10 @@ async def on_ready():
 
   TimedReminder(bot, serverIds, scheduleParser).annoy.start()
 
-@bot.command(aliases=['kys', 'killYourself', 'gokys', 'gokyspls', 'godie', 'goToBed', 'godieinahole',
-                      'vanishThineExistence', 'quit', 'die', 'begone'])
+disconnectAliases = ['kys', 'killYourself', 'gokys', 'gokyspls', 'godie', 'goToBed', 'godieinahole',
+                     'vanishThineExistence', 'quit', 'die', 'begone', 'disconnect']
+
+@bot.command(aliases=disconnectAliases)
 async def disconnect(ctx : commands.Context):
   """Disconnect the bot."""
   endings = [
@@ -58,8 +60,12 @@ async def disconnect(ctx : commands.Context):
     "Goodnight! <3",
   ]
   print(f"{bot.user} is disconnecting.")
-  await ctx.channel.send(choice(endings))
+  await ctx.channel.send(f"{ctx.author.mention} {choice(endings)}")
   await bot.close()
+
+@bot.command(aliases=['howkill', 'howtokill', 'howKill'])
+async def howToKill(ctx : commands.Context):
+  await ctx.channel.send(f"{ctx.author.mention} {disconnectAliases}")
 
 async def alertNextBoss(ctx : commands.Context, bossName : str):
   """Answer the user request for the next time to conquer the target boss.
