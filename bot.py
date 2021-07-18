@@ -1,15 +1,14 @@
 from discord.ext import commands
 import discord
 from json import load
+from os import environ
 from os.path import join
 from random import choice
 
 from common.common import ScheduleParser
 from tasks.timed_reminder import TimedReminder
 
-authFile = open(join('config', 'auth.json'))
-auth = load(authFile)
-authFile.close()
+auth = environ.get('CCG_RUN_REMINDER_DISCORD_BOT_TOKEN')
 
 serverIdsFile = open(join('config', 'server_ids.json'))
 serverIds = load(serverIdsFile)
@@ -92,4 +91,4 @@ async def allRuns(ctx : commands.Context):
     )
   await ctx.channel.send(embed=embed)
 
-bot.run(auth['token'])
+bot.run(auth)
