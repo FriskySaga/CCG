@@ -73,7 +73,7 @@ async def nextCJ(ctx : commands.Context):
 async def nextCEO(ctx : commands.Context):
   await alertNextBoss(ctx, 'CEO')
 
-@bot.command(aliases=['next', 'nextBoss'])
+@bot.command(aliases=['next', 'nextBoss', 'nextRun'])
 async def nextBossRun(ctx : commands.Context):
   await alertNextBoss(ctx, 'Any')
 
