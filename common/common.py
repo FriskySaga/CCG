@@ -3,8 +3,8 @@ from dateutil.relativedelta import relativedelta
 from json import load
 from os.path import join
 import pandas as pd
-from pytz import timezone
-import discord
+import pytz
+
 def readCsvSchedule(folderPath : str) -> pd.DataFrame:
   """Read the CSV CCG Schedule.
   
@@ -28,44 +28,59 @@ def readJsonSchedule(folderPath : str) -> dict:
   jsonScheduleFile.close()
   return jsonData
 
-def convertBasicTimeToDateTime(basicTime : str, now : datetime) -> datetime:
+def convertBasicTimeToDateTime(basicTime : str, dateToUpdate : datetime) -> datetime:
   """Convert a basic time format, (e.g., 13:00), to today's datetime format.
 
   :param basicTime: Hours and minutes separated by a colon
-  :param now: Current time
+  :param dateToUpdate: The date time object to update
 
   :return: Today's datetime format with the basicTime
   """
   timeToCheck = basicTime.split(':')
-  return now.replace(hour=int(timeToCheck[0]),
-                     minute=int(timeToCheck[1]),
-                     second=0,
-                     microsecond=0)
+  return dateToUpdate.replace(hour=int(timeToCheck[0]),
+                              minute=int(timeToCheck[1]),
+                              second=0,
+                              microsecond=0)
 
 class ScheduleParser:
   def __init__(self):
     self.pathToSchedules = join('schedules')
     self.csvDf = readCsvSchedule(self.pathToSchedules)
     self.jsonData = readJsonSchedule(self.pathToSchedules)
+    self.timezone = pytz.timezone('US/Pacific')
 
-  def findAllRuns(self) -> pd.DataFrame:
-    """Find all runs for today.
+  def setTimezone(self, newTimezone):
+    if newTimezone in pytz.all_timezones:
+      self.timezone = pytz.timezone(newTimezone)
+      return True
+    else:
+      return False
+
+  def findAllRuns(self, forTomorrow = False) -> pd.DataFrame:
+    """Find all remaining runs for today or tomorrow if there are no more runs left for today.
+
+    :param forTomorrow: Whether to find the runs for today or tomorrow
+
+    :return: Info about all requested runs
     """
-    now = datetime.now(timezone('US/Pacific'))
-    currentDayOfWeek = now.strftime('%A')
+    now = datetime.now(self.timezone)
+    targetDay = now + timedelta(days=int(forTomorrow))
+    dayOfWeek = targetDay.strftime('%A')
 
-    todaysRuns = self.csvDf.loc[self.csvDf['day_of_week'] == currentDayOfWeek]
+    remainingRuns = self.csvDf.loc[self.csvDf['day_of_week'] == dayOfWeek]
 
     dateTimeList = []
-    for scheduledRunTime in todaysRuns['scheduled_run_time']:
-      dateTimeList.append(convertBasicTimeToDateTime(scheduledRunTime, now))
+    for scheduledRunTime in remainingRuns['scheduled_run_time']:
+      dateTimeList.append(convertBasicTimeToDateTime(scheduledRunTime, targetDay))
 
     dateTimeSeries = pd.Series(dateTimeList)
 
-    todaysRuns.reset_index(drop=True, inplace=True)
+    remainingRuns.reset_index(drop=True, inplace=True)
 
-    todaysRuns = todaysRuns.assign(date_time=dateTimeSeries)
-    return todaysRuns.loc[todaysRuns['date_time'] >= now]
+    remainingRuns = remainingRuns.assign(date_time=dateTimeSeries)
+    laterRunsForToday = remainingRuns.loc[remainingRuns['date_time'] >= now]
+
+    return laterRunsForToday
 
   def findNextBossRunOfAnyType(self) -> tuple[tuple[pd.DataFrame, datetime], relativedelta]:
     """Find the next boss run from the current time irregardless of boss type.
@@ -74,7 +89,7 @@ class ScheduleParser:
     :return: The DateTime associated with the next boss run
     :return: The time delta from now until the next boss run
     """
-    now = datetime.now(timezone('US/Pacific'))
+    now = datetime.now(self.timezone)
     currentDayOfWeek = now.strftime('%A')
 
     # Loop through scheduled runs for today (sorted by ascending time)
@@ -83,10 +98,20 @@ class ScheduleParser:
 
       # Find the next run time
       if now < timeToCheck:
-        nextRunInfo = (row, timeToCheck)
-        break
-  
-    return nextRunInfo, relativedelta(nextRunInfo[-1], now)
+        nextRunInfo = (row, timeToCheck) 
+        return nextRunInfo, relativedelta(nextRunInfo[-1], now)
+    
+    # If there are no more runs for today, then move onto the next day :P
+    nowIsTomorrow = now + timedelta(days=1)
+    tomorrowDayOfWeek = nowIsTomorrow.strftime('%A')
+    for row in self.csvDf.loc[self.csvDf['day_of_week'] == tomorrowDayOfWeek].itertuples():
+      timeToCheck = convertBasicTimeToDateTime(row.scheduled_run_time, nowIsTomorrow)
+
+      # Find the next run time
+      if now < timeToCheck:
+        nextRunInfo = (row, timeToCheck) 
+        return nextRunInfo, relativedelta(nextRunInfo[-1], now)
+
 
   def findNextBossRun(self, bossName : str) -> tuple[dict, relativedelta]:
     """Given a boss type, find the next run from the current time.
@@ -97,7 +122,7 @@ class ScheduleParser:
     :return: The next boss time
     :return: Relative delta info until the next boss
     """
-    now = datetime.now(timezone('US/Pacific'))
+    now = datetime.now(self.timezone)
     currentDayOfWeek = now.strftime('%A')
 
     # Look for the next boss run of this type for today

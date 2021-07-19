@@ -79,16 +79,34 @@ async def nextBossRun(ctx : commands.Context):
 
 @bot.command(aliases=['remindMe', 'remindme', 'allruns'])
 async def allRuns(ctx : commands.Context):
-  min_array_val = min(scheduleParser.findAllRuns().index.values)
-  max_array_val = max(scheduleParser.findAllRuns().index.values)
+  # Find all runs for today
+  allRemainingRuns = scheduleParser.findAllRuns()
+  relativeDay = "today"
+
+  # If there are no more runs for today, look to tomorrow
+  if allRemainingRuns.empty:
+    allRemainingRuns = scheduleParser.findAllRuns(forTomorrow=True)
+    relativeDay = "tomorrow"
+  
+  min_array_val = min(allRemainingRuns.index.values)
+  max_array_val = max(allRemainingRuns.index.values)
   embed = discord.Embed(
-            title="CCG Runs", description="Current CCG runs for today"
+            title="CCG Runs", description="Current CCG runs for " + relativeDay
         )
   for i in range(min_array_val, max_array_val):
     embed.add_field(
-      name=scheduleParser.findAllRuns()["boss_name"][i],
-      value=scheduleParser.findAllRuns()["date_time"][i].strftime('%I:%M %p') + ' Pacific Time'
+      name=allRemainingRuns["boss_name"][i],
+      value=allRemainingRuns["date_time"][i].strftime('%I:%M %p') + ' Pacific Time'
     )
   await ctx.channel.send(embed=embed)
+
+@bot.command()
+async def changeTimezone(ctx : commands.Context, arg : str):
+  """DOESN"T REALLY WORK"""
+  if scheduleParser.setTimezone(arg):
+    # await ctx.channel.send(f"{ctx.author.mention}, your timezone has been set to {arg}.")
+    await ctx.channel.send(f"{ctx.author.mention}, this feature doesn't work.")
+  else:
+    await ctx.channel.send(f"{ctx.author.mention}, '{arg}' is an invalid time zone.")
 
 bot.run(auth)
