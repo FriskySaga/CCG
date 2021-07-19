@@ -11,10 +11,10 @@ Pacific - 10,11,12
 Greenwich Mean - 13,14,15
 British Summer - 16,17,18
 """
-TIMEZONE_SUFFIX = 'central'
-TIME_INDEX = 1
-AM_OR_PM_INDEX = 2
-TIMEZONE_INDEX = 3
+TIMEZONE_SUFFIX = 'mountain'
+TIME_INDEX = 7
+AM_OR_PM_INDEX = 8
+TIMEZONE_INDEX = 9
 
 class ScheduledRunTime:
   def __init__(self, dayOfWeek : str, typeOfBoss : str, scheduledRunTime : str):
