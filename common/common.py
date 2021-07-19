@@ -5,24 +5,49 @@ from os.path import join
 import pandas as pd
 import pytz
 
-def readCsvSchedule(folderPath : str) -> pd.DataFrame:
+class TimezoneInfo:
+  def __init__(self, timezoneObject : pytz.timezone, timezoneFileNameString : str):
+    """Hold timezone data.
+
+    :param timezoneObject: The pytz timezone object
+    :param timezoneFileString: The timezone string used for the CSV/JSON file names
+    """
+    self.timezoneObject = timezoneObject
+    self.timezoneFileNameString = timezoneFileNameString
+    self.timezoneString = self.cleanTimezoneFileNameString()
+  
+  def cleanTimezoneFileNameString(self) -> str:
+    """Make the timezone file name string human-friendly.
+
+    :return: Creature-friendly string
+    """
+    if self.timezoneFileNameString == 'greenwich_mean':
+      return 'Greenwich Mean'
+    elif self.cleanTimezoneFileNameString == 'british_summer':
+      return 'British Summer'
+    else:
+      return self.timezoneFileNameString.capitalize()
+
+def readCsvSchedule(folderPath : str, timezoneInfo : TimezoneInfo) -> pd.DataFrame:
   """Read the CSV CCG Schedule.
   
   :param folderPath: Path to the CSV CCG Schedule
+  :param timezoneInfo: The timezone info object to indicate which file to read from
   
   :return: CSV file loaded into memory as a DataFrame object
   """
-  csvScheduleFilePath = join(folderPath, 'ccg_schedule_ascending_times.csv')
+  csvScheduleFilePath = join(folderPath, f'ccg_schedule_ascending_times_{timezoneInfo.timezoneFileNameString}.csv')
   return pd.read_csv(csvScheduleFilePath)
 
-def readJsonSchedule(folderPath : str) -> dict:
+def readJsonSchedule(folderPath : str, timezoneInfo : str) -> dict:
   """Read the JSON CCG Schedule.
 
   :param folderPath: Path to the JSON CCG Schedule
+  :param timezoneInfo: The timezone info object to indicate which file to read from
 
   :return: JSON Dict for the JSON CCG Schedule
   """
-  jsonScheduleFilePath = join(folderPath, 'ccg_schedule.json')
+  jsonScheduleFilePath = join(folderPath, f'ccg_schedule_{timezoneInfo.timezoneFileNameString}.json')
   jsonScheduleFile = open(jsonScheduleFilePath, 'r')
   jsonData = load(jsonScheduleFile)
   jsonScheduleFile.close()
@@ -45,16 +70,40 @@ def convertBasicTimeToDateTime(basicTime : str, dateToUpdate : datetime) -> date
 class ScheduleParser:
   def __init__(self):
     self.pathToSchedules = join('schedules')
-    self.csvDf = readCsvSchedule(self.pathToSchedules)
-    self.jsonData = readJsonSchedule(self.pathToSchedules)
-    self.timezone = pytz.timezone('US/Pacific')
+    self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Pacific'), 'pacific')
+    self.readSchedules()
 
-  def setTimezone(self, newTimezone):
-    if newTimezone in pytz.all_timezones:
-      self.timezone = pytz.timezone(newTimezone)
-      return True
+  def readSchedules(self):
+    """Read the schedules for the given timezone."""
+    self.csvDf = readCsvSchedule(self.pathToSchedules, self.timezoneInfo)
+    self.jsonData = readJsonSchedule(self.pathToSchedules, self.timezoneInfo)
+
+  def setTimezone(self, newTimezone : str) -> bool:
+    """Set the timezone.
+
+    :param newTimezone: Indicate the new timezone to use
+    
+    :return: Whether the requested timezone is supported
+    """
+    newTimezone = newTimezone.lower()
+    if newTimezone == 'central':
+      self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Central'), newTimezone)
+    elif newTimezone == 'eastern':
+      self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Eastern'), newTimezone)
+    elif newTimezone == 'mountain':
+      self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Mountain'), newTimezone)
+    elif newTimezone == 'pacific':
+      self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Pacific'), newTimezone)
+    elif 'greenwich' in newTimezone:
+      self.timezoneInfo = TimezoneInfo(pytz.timezone('Greenwich'), 'greenwich_mean')
+    elif newTimezone == 'bst' or 'british summer' in newTimezone:
+      self.timezoneInfo = TimezoneInfo(pytz.timezone('Greenwich'), 'british_summer')
     else:
       return False
+    
+    # Load in the new timezone schedule data
+    self.readSchedules()
+    return True
 
   def findAllRuns(self, forTomorrow = False) -> pd.DataFrame:
     """Find all remaining runs for today or tomorrow if there are no more runs left for today.
@@ -63,7 +112,7 @@ class ScheduleParser:
 
     :return: Info about all requested runs
     """
-    now = datetime.now(self.timezone)
+    now = datetime.now(self.timezoneInfo.timezoneObject)
     targetDay = now + timedelta(days=int(forTomorrow))
     dayOfWeek = targetDay.strftime('%A')
 
@@ -80,6 +129,8 @@ class ScheduleParser:
     remainingRuns = remainingRuns.assign(date_time=dateTimeSeries)
     laterRunsForToday = remainingRuns.loc[remainingRuns['date_time'] >= now]
 
+    print(laterRunsForToday)
+
     return laterRunsForToday
 
   def findNextBossRunOfAnyType(self) -> tuple[tuple[pd.DataFrame, datetime], relativedelta]:
@@ -89,7 +140,7 @@ class ScheduleParser:
     :return: The DateTime associated with the next boss run
     :return: The time delta from now until the next boss run
     """
-    now = datetime.now(self.timezone)
+    now = datetime.now(self.timezoneInfo.timezoneObject)
     currentDayOfWeek = now.strftime('%A')
 
     # Loop through scheduled runs for today (sorted by ascending time)
@@ -122,7 +173,7 @@ class ScheduleParser:
     :return: The next boss time
     :return: Relative delta info until the next boss
     """
-    now = datetime.now(self.timezone)
+    now = datetime.now(self.timezoneInfo.timezoneObject)
     currentDayOfWeek = now.strftime('%A')
 
     # Look for the next boss run of this type for today
