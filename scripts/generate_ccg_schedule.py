@@ -2,6 +2,7 @@ import os
 from pprint import pprint
 
 PATH_TO_SCHEDULES = os.path.join('..', 'schedules')
+TIMEZONE_SUFFIX = 'pacific'
 
 class ScheduledRunTime:
   def __init__(self, dayOfWeek : str, typeOfBoss : str, scheduledRunTime : str):
@@ -122,12 +123,12 @@ for day in runTimesByDayByBoss:
       raise RuntimeError(f'Built my list wrong: {item}')
 
 # Create the JSON CCG Schedule file
-jsonOutputFilePath = os.path.join(PATH_TO_SCHEDULES, 'ccg_schedule.json')
+jsonOutputFilePath = os.path.join(PATH_TO_SCHEDULES, f'ccg_schedule_{TIMEZONE_SUFFIX}.json')
 with open(jsonOutputFilePath, 'w', encoding='utf-8') as outputFile:
   json.dump(jsonData, outputFile, ensure_ascii=False, indent=2)
 
 # Build a CSV file sorted by ascending time
-csvOutputFilePath = os.path.join(PATH_TO_SCHEDULES, 'ccg_schedule_ascending_times.csv')
+csvOutputFilePath = os.path.join(PATH_TO_SCHEDULES, f'ccg_schedule_ascending_times_{TIMEZONE_SUFFIX}.csv')
 with open(csvOutputFilePath, 'w') as csvOutputFile:
   csvOutputFile.write('day_of_week,scheduled_run_time,boss_name\n')
   for line in allScheduledRunTimes:
