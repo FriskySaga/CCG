@@ -2,7 +2,19 @@ import os
 from pprint import pprint
 
 PATH_TO_SCHEDULES = os.path.join('..', 'schedules')
-TIMEZONE_SUFFIX = 'pacific'
+
+"""Hard-coded indices for various timezones :)
+Central - 1,2,3
+Eastern - 4,5,6
+Mountain - 7,8,9
+Pacific - 10,11,12
+Greenwich Mean - 13,14,15
+British Summer - 16,17,18
+"""
+TIMEZONE_SUFFIX = 'eastern'
+TIME_INDEX = 4
+AM_OR_PM_INDEX = 5
+TIMEZONE_INDEX = 6
 
 class ScheduledRunTime:
   def __init__(self, dayOfWeek : str, typeOfBoss : str, scheduledRunTime : str):
@@ -23,15 +35,11 @@ def convertTo24Hour(timeToConvert : str, amOrPm : str, timezone : str) -> str:
   :param amOrPm: This string should say either 'AM' or 'PM'
   :param timezone: Capital two-letter abbreviation for the timezone
 
-  :raises RuntimeError: When the timezone is unsupported
   :raises RuntimeError: When amOrPm is not a valid string
   :raises RuntimeError: When the converted time is invalid
 
   :return: The 24 hour time format
   """
-  if timezone != 'PT':
-    raise RuntimeError(f'convertTo24Hour() - Unsupported timezone {timezone}')
-
   if amOrPm == 'AM':
     isAM = True
   elif amOrPm == 'PM':
@@ -61,7 +69,7 @@ def convertTo24Hour(timeToConvert : str, amOrPm : str, timezone : str) -> str:
 allScheduledRunTimes = []
 runTimesByDayByBoss = []
 
-rawCcgSchedulePath = os.path.join(PATH_TO_SCHEDULES, 'ccg_schedule_raw.txt')
+rawCcgSchedulePath = os.path.join(PATH_TO_SCHEDULES, 'raw_ccg_schedule.txt')
 
 with open(rawCcgSchedulePath, 'r') as inputFile:
   for line in inputFile:
@@ -77,7 +85,9 @@ with open(rawCcgSchedulePath, 'r') as inputFile:
         # Append boss name
         runTimesByDayByBoss[-1].append([contentsGrouping[0]])
         # Convert 12 hour time format to 24 hour time format
-        scheduledRunTime = convertTo24Hour(contentsGrouping[10], contentsGrouping[11], contentsGrouping[12])
+        scheduledRunTime = convertTo24Hour(contentsGrouping[TIME_INDEX],
+                                           contentsGrouping[AM_OR_PM_INDEX],
+                                           contentsGrouping[TIMEZONE_INDEX])
         runTimesByDayByBoss[-1][-1].append(scheduledRunTime)
       # Append to existing boss list within the day
       else:
@@ -85,7 +95,9 @@ with open(rawCcgSchedulePath, 'r') as inputFile:
         for item in runTimesByDayByBoss[-1]:
           if contentsGrouping[0] in item:
             # Convert 12 hour time format to 24 hour time format
-            scheduledRunTime = convertTo24Hour(contentsGrouping[10], contentsGrouping[11], contentsGrouping[12])
+            scheduledRunTime = convertTo24Hour(contentsGrouping[TIME_INDEX],
+                                               contentsGrouping[AM_OR_PM_INDEX],
+                                               contentsGrouping[TIMEZONE_INDEX])
             item.append(scheduledRunTime)
       allScheduledRunTimes.append(
         ScheduledRunTime(dayOfWeek=runTimesByDayByBoss[-1][0],
@@ -98,7 +110,7 @@ with open(rawCcgSchedulePath, 'r') as inputFile:
 import json
 
 # Load template file
-ccgScheduleTemplatePath = os.path.join(PATH_TO_SCHEDULES, 'ccg_schedule_template.json')
+ccgScheduleTemplatePath = os.path.join(PATH_TO_SCHEDULES, 'template_ccg_schedule.json')
 
 templateFile = open(ccgScheduleTemplatePath, 'r')
 jsonData = json.load(templateFile)
