@@ -32,7 +32,7 @@ class TimedReminder(commands.Cog):
     nextRunTime = self.nextRunInfo[-1]
 
     # Send the message for this run if it hasn't yet been sent
-    if not self.annoyed and rd.minutes <= minutesBeforeEventToRemind and rd.minutes >= 0:
+    if not self.annoyed and rd.hours == 0 and rd.minutes <= minutesBeforeEventToRemind and rd.minutes >= 0:
       await channel.send(
         f"{ccgRunRemindee.mention} {self.nextRunInfo[0].boss_name} within the next "
         f"{minutesBeforeEventToRemind} minutes at "
