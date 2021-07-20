@@ -102,15 +102,15 @@ async def allRuns(ctx : commands.Context):
 
 @bot.command(aliases=['setTimezone', 'changetimezone', 'settimezone', 'settime', 'changeTime', 'setTime', 'changetime',
                       'set'])
-async def changeTimezone(ctx : commands.Context, arg1 : str, arg2 : str):
-  requestedTimezone = arg1 + arg2
+async def changeTimezone(ctx : commands.Context, arg1 : str, arg2 = "", arg3 = ""):
+  requestedTimezone = arg1 + arg2 + arg3
   if scheduleParser.setTimezone(requestedTimezone):
     await ctx.channel.send(f"{ctx.author.mention}, your timezone has been set to "
                            f"{scheduleParser.timezoneInfo.timezoneString} Time.")
   else:
     await ctx.channel.send(f"{ctx.author.mention}, '{requestedTimezone}' is an invalid time zone.")
 
-@bot.command(aliases=['currenttimezone', 'current', 'currenttime', 'currentTime', 'time'])
+@bot.command(aliases=['currenttimezone', 'timezone', 'checkTimezone', 'checktimezone', 'checkTime', 'checktime'])
 async def currentTimezone(ctx : commands.Context):
   await ctx.channel.send(f"{ctx.author.mention}, the current timezone is "
                          f"{scheduleParser.timezoneInfo.timezoneString} Time.")

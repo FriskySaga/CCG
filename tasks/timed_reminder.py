@@ -28,7 +28,7 @@ class TimedReminder(commands.Cog):
       self.annoyed = False
       self.prevRunInfo = self.nextRunInfo
 
-    minutesBeforeEventToRemind = 47
+    minutesBeforeEventToRemind = 5
     nextRunTime = self.nextRunInfo[-1]
 
     # Send the message for this run if it hasn't yet been sent
