@@ -101,7 +101,7 @@ async def allRuns(ctx : commands.Context):
   await ctx.channel.send(embed=embed)
 
 @bot.command(aliases=['setTimezone', 'changetimezone', 'settimezone', 'settime', 'changeTime', 'setTime', 'changetime',
-                      'time', 'set'])
+                      'set'])
 async def changeTimezone(ctx : commands.Context, arg : str):
   if scheduleParser.setTimezone(arg):
     await ctx.channel.send(f"{ctx.author.mention}, your timezone has been set to"
