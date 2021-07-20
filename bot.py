@@ -104,7 +104,7 @@ async def allRuns(ctx : commands.Context):
                       'set'])
 async def changeTimezone(ctx : commands.Context, arg : str):
   if scheduleParser.setTimezone(arg):
-    await ctx.channel.send(f"{ctx.author.mention}, your timezone has been set to"
+    await ctx.channel.send(f"{ctx.author.mention}, your timezone has been set to "
                            f"{scheduleParser.timezoneInfo.timezoneString} Time.")
   else:
     await ctx.channel.send(f"{ctx.author.mention}, '{arg}' is an invalid time zone.")
