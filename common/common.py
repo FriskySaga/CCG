@@ -23,7 +23,7 @@ class TimezoneInfo:
     """
     if self.timezoneFileNameString == 'greenwich_mean':
       return 'Greenwich Mean'
-    elif self.cleanTimezoneFileNameString == 'british_summer':
+    elif self.timezoneFileNameString == 'british_summer':
       return 'British Summer'
     else:
       return self.timezoneFileNameString.capitalize()
@@ -96,7 +96,7 @@ class ScheduleParser:
       self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Pacific'), newTimezone)
     elif 'greenwich' in newTimezone:
       self.timezoneInfo = TimezoneInfo(pytz.timezone('Greenwich'), 'greenwich_mean')
-    elif newTimezone == 'bst' or 'british summer' in newTimezone:
+    elif newTimezone == 'bst' or 'british' in newTimezone or 'summer' in newTimezone:
       self.timezoneInfo = TimezoneInfo(pytz.timezone('Greenwich'), 'british_summer')
     else:
       return False

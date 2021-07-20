@@ -50,12 +50,12 @@ async def alertNextBoss(ctx : commands.Context, bossName : str):
     scheduledTime, rd = scheduleParser.findNextBossRun(bossName)
     await ctx.channel.send(
       f"{ctx.author.mention} Next {bossName} in {rd.hours} hours and {rd.minutes} "
-      f"minutes from now at {scheduledTime.strftime('%I:%M %p')} {scheduleParser.timezoneInfo.timezoneString} Time")
+      f"minutes from now at {scheduledTime.strftime('%I:%M %p')} {scheduleParser.timezoneInfo.timezoneString} Time.")
   else:
     nextRunInfo, rd = scheduleParser.findNextBossRunOfAnyType()
     await ctx.channel.send(
       f"{ctx.author.mention} Next {nextRunInfo[0].boss_name} in {rd.hours} hours and {rd.minutes} "
-      f"minutes from now at {nextRunInfo[-1].strftime('%I:%M %p')} {scheduleParser.timezoneInfo.timezoneString} Time")
+      f"minutes from now at {nextRunInfo[-1].strftime('%I:%M %p')} {scheduleParser.timezoneInfo.timezoneString} Time.")
 
 @bot.command()
 async def nextVP(ctx : commands.Context):
@@ -96,18 +96,22 @@ async def allRuns(ctx : commands.Context):
   for i in range(min_array_val, max_array_val+1):
     embed.add_field(
       name=allRemainingRuns["boss_name"][i],
-      value=f"{allRemainingRuns['date_time'][i].strftime('%I:%M %p')} {scheduleParser.timezoneInfo.timezoneString} Time"
+      value=f"{allRemainingRuns['date_time'][i].strftime('%I:%M %p')} {scheduleParser.timezoneInfo.timezoneString} Time."
     )
   await ctx.channel.send(embed=embed)
 
 @bot.command(aliases=['setTimezone', 'changetimezone', 'settimezone', 'settime', 'changeTime', 'setTime', 'changetime',
-                      'time'])
+                      'time', 'set'])
 async def changeTimezone(ctx : commands.Context, arg : str):
-  """DOESN"T REALLY WORK"""
   if scheduleParser.setTimezone(arg):
-    await ctx.channel.send(f"{ctx.author.mention}, your timezone has been set to {arg}.")
-    # await ctx.channel.send(f"{ctx.author.mention}, this feature doesn't work.")
+    await ctx.channel.send(f"{ctx.author.mention}, your timezone has been set to"
+                           f"{scheduleParser.timezoneInfo.timezoneString} Time.")
   else:
     await ctx.channel.send(f"{ctx.author.mention}, '{arg}' is an invalid time zone.")
+
+@bot.command(aliases=['currenttimezone', 'current', 'currenttime', 'currentTime', 'time'])
+async def currentTimezone(ctx : commands.Context):
+  await ctx.channel.send(f"{ctx.author.mention}, the current timezone is "
+                         f"{scheduleParser.timezoneInfo.timezoneString} Time.")
 
 bot.run(auth)
