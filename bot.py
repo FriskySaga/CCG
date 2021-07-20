@@ -94,7 +94,6 @@ async def allRuns(ctx : commands.Context):
     relativeDay = "tomorrow"
     allRemainingRuns = scheduleParser.findAllRuns(forTomorrow=True)
   
-  print(relativeDay)
   min_array_val = min(allRemainingRuns.index.values)
   max_array_val = max(allRemainingRuns.index.values)
   embed = discord.Embed(
