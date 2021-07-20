@@ -86,17 +86,17 @@ class ScheduleParser:
     :return: Whether the requested timezone is supported
     """
     newTimezone = newTimezone.lower()
-    if newTimezone == 'ct' or newTimezone == 'cst' or 'central' in newTimezone:
+    if newTimezone in ['ct', 'cst', 'central']:
       self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Central'), 'central')
-    elif newTimezone == 'et' or newTimezone == 'est' or 'eastern' in newTimezone:
+    elif newTimezone in ['et', 'est', 'eastern']:
       self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Eastern'), 'eastern')
-    elif newTimezone == 'mt' or newTimezone == 'mst' or 'mountain' in newTimezone:
+    elif newTimezone in ['mt', 'mst', 'mountain']:
       self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Mountain'), 'mountain')
-    elif newTimezone == 'pt' or newTimezone == 'pst' or 'pacific' in newTimezone:
+    elif newTimezone in ['pt', 'pst', 'pacific']:
       self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Pacific'), 'pacific')
-    elif newTimezone == 'gmt' or 'greenwich' in newTimezone or 'mean' in newTimezone:
+    elif newTimezone in ['gmt', 'greenwich', 'mean']:
       self.timezoneInfo = TimezoneInfo(pytz.timezone('Greenwich'), 'greenwich_mean')
-    elif newTimezone == 'bst' or 'british' in newTimezone or 'summer' in newTimezone:
+    elif newTimezone in ['bst', 'british', 'summer']:
       self.timezoneInfo = TimezoneInfo(pytz.timezone('Europe/London'), 'british_summer')
     else:
       return False
@@ -120,7 +120,7 @@ class ScheduleParser:
     # Subtract a day if we are peeking yesterday, otherwise add a day if we are peeking tomorrow
     targetDay = now - timedelta(days=int(peekYesterday))
     targetDay = targetDay + timedelta(days=int(forTomorrow))
-    
+
     dayOfWeek = targetDay.strftime('%A')
 
     remainingRuns = self.csvDf.loc[self.csvDf['day_of_week'] == dayOfWeek]
@@ -154,14 +154,43 @@ class ScheduleParser:
     :return: The time delta from now until the next boss run
     """
     now = datetime.now(self.timezoneInfo.timezoneObject)
-    currentDayOfWeek = now.strftime('%A')
+    prevParsedTimes = []
+
+    # Loop through scheduled runs for yesterday (because of MCF schedule structure)
+    nowWasYesterday = now - timedelta(days=1)
+    yesterdayDayOfWeek = nowWasYesterday.strftime('%A')
+    for row in self.csvDf.loc[self.csvDf['day_of_week'] == yesterdayDayOfWeek].itertuples():
+      timeToCheck = convertBasicTimeToDateTime(row.scheduled_run_time, nowWasYesterday)
+
+      # If the new time is smaller than the previous time, then because we know
+      # the CSV is sorted in ascending time, then we can make the assumption
+      # that this new time is actually the next day (unlike what MCF suggests)
+      if prevParsedTimes and timeToCheck < prevParsedTimes[-1]:
+        timeToCheck = timeToCheck + timedelta(days=1)
+
+      prevParsedTimes.append(timeToCheck)
+
+      # Find the next run time
+      if now <= timeToCheck:
+        nextRunInfo = (row, timeToCheck) 
+        return nextRunInfo, relativedelta(nextRunInfo[-1], now)
 
     # Loop through scheduled runs for today (sorted by ascending time)
+    prevParsedTimes = []
+    currentDayOfWeek = now.strftime('%A')
     for row in self.csvDf.loc[self.csvDf['day_of_week'] == currentDayOfWeek].itertuples():
       timeToCheck = convertBasicTimeToDateTime(row.scheduled_run_time, now)
 
+      # If the new time is smaller than the previous time, then because we know
+      # the CSV is sorted in ascending time, then we can make the assumption
+      # that this new time is actually the next day (unlike what MCF suggests)
+      if prevParsedTimes and timeToCheck < prevParsedTimes[-1]:
+        timeToCheck = timeToCheck + timedelta(days=1)
+      
+      prevParsedTimes.append(timeToCheck)
+
       # Find the next run time
-      if now < timeToCheck:
+      if now <= timeToCheck:
         nextRunInfo = (row, timeToCheck) 
         return nextRunInfo, relativedelta(nextRunInfo[-1], now)
     
@@ -172,7 +201,7 @@ class ScheduleParser:
       timeToCheck = convertBasicTimeToDateTime(row.scheduled_run_time, nowIsTomorrow)
 
       # Find the next run time
-      if now < timeToCheck:
+      if now <= timeToCheck:
         nextRunInfo = (row, timeToCheck) 
         return nextRunInfo, relativedelta(nextRunInfo[-1], now)
 
