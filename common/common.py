@@ -97,7 +97,7 @@ class ScheduleParser:
     elif newTimezone == 'gmt' or 'greenwich' in newTimezone or 'mean' in newTimezone:
       self.timezoneInfo = TimezoneInfo(pytz.timezone('Greenwich'), 'greenwich_mean')
     elif newTimezone == 'bst' or 'british' in newTimezone or 'summer' in newTimezone:
-      self.timezoneInfo = TimezoneInfo(pytz.timezone('Greenwich'), 'british_summer')
+      self.timezoneInfo = TimezoneInfo(pytz.timezone('Europe/London'), 'british_summer')
     else:
       return False
     
@@ -105,33 +105,46 @@ class ScheduleParser:
     self.readSchedules()
     return True
 
-  def findAllRuns(self, forTomorrow = False) -> pd.DataFrame:
+  def findAllRuns(self, peekYesterday = False, forTomorrow = False) -> pd.DataFrame:
     """Find all remaining runs for today or tomorrow if there are no more runs left for today.
 
+    :param peekYesterday: Whether to peek the runs that are assigned to yesterday per MCF schedule
     :param forTomorrow: Whether to find the runs for today or tomorrow
+
+    :note: Both parameters should never be True at the same time
 
     :return: Info about all requested runs
     """
     now = datetime.now(self.timezoneInfo.timezoneObject)
-    targetDay = now + timedelta(days=int(forTomorrow))
+
+    # Subtract a day if we are peeking yesterday, otherwise add a day if we are peeking tomorrow
+    targetDay = now - timedelta(days=int(peekYesterday))
+    targetDay = targetDay + timedelta(days=int(forTomorrow))
+    
     dayOfWeek = targetDay.strftime('%A')
 
     remainingRuns = self.csvDf.loc[self.csvDf['day_of_week'] == dayOfWeek]
 
     dateTimeList = []
     for scheduledRunTime in remainingRuns['scheduled_run_time']:
-      dateTimeList.append(convertBasicTimeToDateTime(scheduledRunTime, targetDay))
+      newTime = convertBasicTimeToDateTime(scheduledRunTime, targetDay)
+
+      # If the new time is smaller than the previous time, then because we know
+      # the CSV is sorted in ascending time, then we can make the assumption
+      # that this new time is actually the next day (unlike what MCF suggests)
+      if dateTimeList and newTime < dateTimeList[-1]:
+        newTime = newTime + timedelta(days=1)
+
+      dateTimeList.append(newTime)
 
     dateTimeSeries = pd.Series(dateTimeList)
 
     remainingRuns.reset_index(drop=True, inplace=True)
 
     remainingRuns = remainingRuns.assign(date_time=dateTimeSeries)
-    laterRunsForToday = remainingRuns.loc[remainingRuns['date_time'] >= now]
+    remainingRuns = remainingRuns.loc[remainingRuns['date_time'] >= now]
 
-    print(laterRunsForToday)
-
-    return laterRunsForToday
+    return remainingRuns
 
   def findNextBossRunOfAnyType(self) -> tuple[tuple[pd.DataFrame, datetime], relativedelta]:
     """Find the next boss run from the current time irregardless of boss type.
@@ -162,7 +175,6 @@ class ScheduleParser:
       if now < timeToCheck:
         nextRunInfo = (row, timeToCheck) 
         return nextRunInfo, relativedelta(nextRunInfo[-1], now)
-
 
   def findNextBossRun(self, bossName : str) -> tuple[dict, relativedelta]:
     """Given a boss type, find the next run from the current time.

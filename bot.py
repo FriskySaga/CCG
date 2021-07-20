@@ -79,15 +79,22 @@ async def nextBossRun(ctx : commands.Context):
 
 @bot.command(aliases=['remindMe', 'remindme', 'allruns'])
 async def allRuns(ctx : commands.Context):
-  # Find all runs for today
-  allRemainingRuns = scheduleParser.findAllRuns()
-  relativeDay = "today"
+  relativeDay = "today's early morning"
+
+  # Find all runs for today that may be categorized as yesterday's runs according to MMO Central Forums
+  allRemainingRuns = scheduleParser.findAllRuns(peekYesterday=True)
+
+  # Look at today's runs
+  if allRemainingRuns.empty:
+    relativeDay = "today"
+    allRemainingRuns = scheduleParser.findAllRuns()
 
   # If there are no more runs for today, look to tomorrow
   if allRemainingRuns.empty:
-    allRemainingRuns = scheduleParser.findAllRuns(forTomorrow=True)
     relativeDay = "tomorrow"
+    allRemainingRuns = scheduleParser.findAllRuns(forTomorrow=True)
   
+  print(relativeDay)
   min_array_val = min(allRemainingRuns.index.values)
   max_array_val = max(allRemainingRuns.index.values)
   embed = discord.Embed(
@@ -96,12 +103,12 @@ async def allRuns(ctx : commands.Context):
   for i in range(min_array_val, max_array_val+1):
     embed.add_field(
       name=allRemainingRuns["boss_name"][i],
-      value=f"{allRemainingRuns['date_time'][i].strftime('%I:%M %p')} {scheduleParser.timezoneInfo.timezoneString} Time."
+      value=f"{allRemainingRuns['date_time'][i].strftime('%I:%M %p')} {scheduleParser.timezoneInfo.timezoneString} Time"
     )
   await ctx.channel.send(embed=embed)
 
 @bot.command(aliases=['setTimezone', 'changetimezone', 'settimezone', 'settime', 'changeTime', 'setTime', 'changetime',
-                      'set'])
+                      'set', 'mytime', 'myTime', 'timezone'])
 async def changeTimezone(ctx : commands.Context, arg1 : str, arg2 = "", arg3 = ""):
   requestedTimezone = arg1 + arg2 + arg3
   if scheduleParser.setTimezone(requestedTimezone):
@@ -110,7 +117,7 @@ async def changeTimezone(ctx : commands.Context, arg1 : str, arg2 = "", arg3 = "
   else:
     await ctx.channel.send(f"{ctx.author.mention}, '{requestedTimezone}' is an invalid time zone.")
 
-@bot.command(aliases=['currenttimezone', 'timezone', 'checkTimezone', 'checktimezone', 'checkTime', 'checktime'])
+@bot.command(aliases=['currenttimezone', 'checkTimezone', 'checktimezone', 'checkTime', 'checktime'])
 async def currentTimezone(ctx : commands.Context):
   await ctx.channel.send(f"{ctx.author.mention}, the current timezone is "
                          f"{scheduleParser.timezoneInfo.timezoneString} Time.")
