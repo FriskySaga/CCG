@@ -86,15 +86,15 @@ class ScheduleParser:
     :return: Whether the requested timezone is supported
     """
     newTimezone = newTimezone.lower()
-    if newTimezone == 'central':
+    if newTimezone == 'ct' or newTimezone == 'cst' or newTimezone == 'central':
       self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Central'), newTimezone)
-    elif newTimezone == 'eastern':
+    elif newTimezone == 'et' or newTimezone == 'est' or newTimezone == 'eastern':
       self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Eastern'), newTimezone)
-    elif newTimezone == 'mountain':
+    elif newTimezone == 'mt' or newTimezone == 'mst' or newTimezone == 'mountain':
       self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Mountain'), newTimezone)
-    elif newTimezone == 'pacific':
+    elif newTimezone == 'pt' or newTimezone == 'pst' or newTimezone == 'pacific':
       self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Pacific'), newTimezone)
-    elif 'greenwich' in newTimezone:
+    elif newTimezone == 'gmt' or 'greenwich' in newTimezone or 'mean' in newTimezone:
       self.timezoneInfo = TimezoneInfo(pytz.timezone('Greenwich'), 'greenwich_mean')
     elif newTimezone == 'bst' or 'british' in newTimezone or 'summer' in newTimezone:
       self.timezoneInfo = TimezoneInfo(pytz.timezone('Greenwich'), 'british_summer')
