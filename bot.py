@@ -16,7 +16,7 @@ serverIdsFile.close()
 
 scheduleParser = ScheduleParser()
 
-bot = commands.Bot(command_prefix='!')
+bot = commands.Bot(command_prefix='!', case_insensitive=True)
 
 @bot.event
 async def on_ready():
@@ -77,7 +77,7 @@ async def nextCEO(ctx : commands.Context):
 async def nextBossRun(ctx : commands.Context):
   await alertNextBoss(ctx, 'Any')
 
-@bot.command(aliases=['remindMe', 'remindme', 'allruns'])
+@bot.command(aliases=['remindMe'])
 async def allRuns(ctx : commands.Context):
   relativeDay = "today's early morning"
 
@@ -106,8 +106,7 @@ async def allRuns(ctx : commands.Context):
     )
   await ctx.channel.send(embed=embed)
 
-@bot.command(aliases=['setTimezone', 'changetimezone', 'settimezone', 'settime', 'changeTime', 'setTime', 'changetime',
-                      'set', 'mytime', 'myTime', 'timezone'])
+@bot.command(aliases=['setTimezone', 'changeTime', 'setTime', 'set', 'myTime'])
 async def changeTimezone(ctx : commands.Context, arg1 : str, arg2 = "", arg3 = ""):
   requestedTimezone = " ".join([arg1, arg2, arg3]).rstrip()
   if scheduleParser.setTimezone(requestedTimezone):
@@ -116,7 +115,7 @@ async def changeTimezone(ctx : commands.Context, arg1 : str, arg2 = "", arg3 = "
   else:
     await ctx.channel.send(f"{ctx.author.mention}, '{requestedTimezone}' is an invalid time zone.")
 
-@bot.command(aliases=['currenttimezone', 'checkTimezone', 'checktimezone', 'checkTime', 'checktime'])
+@bot.command(aliases=['checkTimezone', 'checkTime'])
 async def currentTimezone(ctx : commands.Context):
   await ctx.channel.send(f"{ctx.author.mention}, the current timezone is "
                          f"{scheduleParser.timezoneInfo.timezoneString} Time.")
