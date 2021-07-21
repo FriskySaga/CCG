@@ -85,7 +85,7 @@ class ScheduleParser:
     
     :return: Whether the requested timezone is supported
     """
-    newTimezone = newTimezone.lower()
+    newTimezone = newTimezone.lower().split()
     if any(x in newTimezone for x in ['ct', 'cst', 'central']):
       self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Central'), 'central')
     elif any(x in newTimezone for x in ['et', 'est', 'eastern']):
