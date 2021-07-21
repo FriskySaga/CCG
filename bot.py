@@ -30,7 +30,7 @@ async def on_ready():
     "I have been awakened from my slumber...",
     "What's the craic?",
     "How hops it?",
-    "Ahoy, avast~!",
+    "Ahoy, avast!",
     "Fear not! I am here!",
     "Salutations, friend(s)!",
     "What does clickbait taste like?",
