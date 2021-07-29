@@ -1,4 +1,5 @@
 **/__pycache__/
 config/auth.json
+config/server_ids.json
 *.pyc
 test.out
