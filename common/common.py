@@ -119,11 +119,11 @@ class ScheduleParser:
 
     return remainingRuns
 
-  def findNextBossRunOfAnyType(self) -> tuple[tuple[pd.DataFrame, datetime], relativedelta]:
+  def findNextBossRunOfAnyType(self) -> tuple[tuple[pd.DataFrame, int], relativedelta]:
     """Find the next boss run from the current time irregardless of boss type.
 
     :return: DataFrame row about the next boss run
-    :return: The DateTime associated with the next boss run
+    :return: The Unix time associated with the next boss run
     :return: The time delta from now until the next boss run
     """
     now = datetime.now(self.timezoneInfo.timezoneObject)
@@ -178,13 +178,13 @@ class ScheduleParser:
         nextRunInfo = (row, int(datetime.timestamp(timeToCheck)))
         return nextRunInfo, relativedelta(timeToCheck, now)
 
-  def findNextBossRun(self, bossName : str) -> tuple[dict, relativedelta]:
+  def findNextBossRun(self, bossName : str) -> tuple[int, relativedelta]:
     """Given a boss type, find the next run from the current time.
 
     :param bossName: The next boss run to find.
                      Acceptable values are: 'VP', 'CFO', 'CJ', 'CEO'
 
-    :return: The next boss time
+    :return: The next boss time in Unix time
     :return: Relative delta info until the next boss
     """
     now = datetime.now(self.timezoneInfo.timezoneObject)
