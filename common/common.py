@@ -188,43 +188,16 @@ class ScheduleParser:
     :return: Relative delta info until the next boss
     """
     now = datetime.now(self.timezoneInfo.timezoneObject)
-    prevParsedTimes = []
 
     # Loop through scheduled runs for yesterday (because of MCF schedule structure)
-    nowWasYesterday = now - timedelta(days=1)
-    yesterdayDayOfWeek = nowWasYesterday.strftime('%A')
-    for scheduledTime in self.jsonData[yesterdayDayOfWeek][bossName]:
-      timeToCheck = convertBasicTimeToDateTime(scheduledTime, nowWasYesterday)
-
-      # If the new time is smaller than the previous time, then because we know
-      # the JSON is sorted in ascending time, then we can make the assumption
-      # that this new time is actually the next day (unlike what MCF suggests)
-      if prevParsedTimes and timeToCheck < prevParsedTimes[-1]:
-        timeToCheck = timeToCheck + timedelta(days=1)
-
-      prevParsedTimes.append(timeToCheck)
-
-      # Find the next run time
-      if now <= timeToCheck:
-        return int(datetime.timestamp(timeToCheck)), relativedelta(timeToCheck, now)
+    nextRunTime, timeUntilRun = self.doFindNextRunTime(bossName, dayToSearch=now - timedelta(days=1), now=now)
+    if nextRunTime is not None and timeUntilRun is not None:
+      return nextRunTime, timeUntilRun
 
     # Look for the next boss run of this type for today
-    prevParsedTimes = []
-    currentDayOfWeek = now.strftime('%A')
-    for scheduledTime in self.jsonData[currentDayOfWeek][bossName]:
-      timeToCheck = convertBasicTimeToDateTime(scheduledTime, now)
-
-      # If the new time is smaller than the previous time, then because we know
-      # the JSON is sorted in ascending time, then we can make the assumption
-      # that this new time is actually the next day (unlike what MCF suggests)
-      if prevParsedTimes and timeToCheck < prevParsedTimes[-1]:
-        timeToCheck = timeToCheck + timedelta(days=1)
-
-      prevParsedTimes.append(timeToCheck)
-
-      # Find the next run time
-      if now <= timeToCheck:
-        return int(datetime.timestamp(timeToCheck)), relativedelta(timeToCheck, now)
+    nextRunTime, timeUntilRun = self.doFindNextRunTime(bossName, dayToSearch=now, now=now)
+    if nextRunTime is not None and timeUntilRun is not None:
+      return nextRunTime, timeUntilRun
     
     # Move onto the next day if there are no more runs for the day
     nowIsTomorrow = now + timedelta(days=1)
@@ -233,3 +206,31 @@ class ScheduleParser:
     nextDtRunTime = convertBasicTimeToDateTime(nextBasicRunTime, nowIsTomorrow)
     return int(datetime.timestamp(nextDtRunTime)), relativedelta(nextDtRunTime, now)
     
+  def doFindNextRunTime(self, bossName : str, dayToSearch : datetime, now : datetime) -> tuple[int, relativedelta]:
+    """Do find the next run time.
+
+    :param bossName: The next boss run to find
+    :param dayToSearch: The day to search through
+    :param now: The current time
+
+    :return: The next boss time in Unix time
+    :return: Relative delta info until the next boss
+    """
+    prevParsedTimes = []
+    dayOfWeek = dayToSearch.strftime('%A')
+    for scheduledTime in self.jsonData[dayOfWeek][bossName]:
+      timeToCheck = convertBasicTimeToDateTime(scheduledTime, dayToSearch)
+
+      # If the new time is smaller than the previous time, then because we know
+      # the JSON is sorted in ascending time, then we can make the assumption
+      # that this new time is actually the next day (unlike what MCF suggests)
+      if prevParsedTimes and timeToCheck < prevParsedTimes[-1]:
+        timeToCheck = timeToCheck + timedelta(days=1)
+
+      prevParsedTimes.append(timeToCheck)
+
+      # Find the next run time
+      if now <= timeToCheck:
+        return int(datetime.timestamp(timeToCheck)), relativedelta(timeToCheck, now)
+    
+    return None, None
