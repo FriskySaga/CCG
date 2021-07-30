@@ -20,8 +20,6 @@ scheduleParser = ScheduleParser()
 
 bot = commands.Bot(command_prefix='!', case_insensitive=True)
 
-bot.add_cog(NotifyDailyRuns(bot, scheduleParser))
-
 @bot.event
 async def on_ready():
   """Start the bot."""
@@ -44,4 +42,6 @@ async def on_ready():
 
   TimedReminder(bot, serverIds, scheduleParser).annoy.start()
 
+
+bot.add_cog(NotifyDailyRuns(bot, scheduleParser))
 bot.run(auth)
