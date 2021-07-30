@@ -127,46 +127,17 @@ class ScheduleParser:
     :return: The time delta from now until the next boss run
     """
     now = datetime.now(self.timezoneInfo.timezoneObject)
-    prevParsedTimes = []
 
     # Loop through scheduled runs for yesterday (because of MCF schedule structure)
-    nowWasYesterday = now - timedelta(days=1)
-    yesterdayDayOfWeek = nowWasYesterday.strftime('%A')
-    for row in self.csvDf.loc[self.csvDf['day_of_week'] == yesterdayDayOfWeek].itertuples():
-      timeToCheck = convertBasicTimeToDateTime(row.scheduled_run_time, nowWasYesterday)
-
-      # If the new time is smaller than the previous time, then because we know
-      # the CSV is sorted in ascending time, then we can make the assumption
-      # that this new time is actually the next day (unlike what MCF suggests)
-      if prevParsedTimes and timeToCheck < prevParsedTimes[-1]:
-        timeToCheck = timeToCheck + timedelta(days=1)
-
-      prevParsedTimes.append(timeToCheck)
-
-      # Find the next run time
-      if now <= timeToCheck:
-        nextRunInfo = (row, int(datetime.timestamp(timeToCheck)))
-        return nextRunInfo, relativedelta(timeToCheck, now)
+    nextRunInfo, timeUntilRun = self.doFindNextBossRunOfAnyType(now - timedelta(days=1), now)
+    if nextRunInfo is not None and timeUntilRun is not None:
+      return nextRunInfo, timeUntilRun
 
     # Loop through scheduled runs for today (sorted by ascending time)
-    prevParsedTimes = []
-    currentDayOfWeek = now.strftime('%A')
-    for row in self.csvDf.loc[self.csvDf['day_of_week'] == currentDayOfWeek].itertuples():
-      timeToCheck = convertBasicTimeToDateTime(row.scheduled_run_time, now)
+    nextRunInfo, timeUntilRun = self.doFindNextBossRunOfAnyType(now, now)
+    if nextRunInfo is not None and timeUntilRun is not None:
+      return nextRunInfo, timeUntilRun
 
-      # If the new time is smaller than the previous time, then because we know
-      # the CSV is sorted in ascending time, then we can make the assumption
-      # that this new time is actually the next day (unlike what MCF suggests)
-      if prevParsedTimes and timeToCheck < prevParsedTimes[-1]:
-        timeToCheck = timeToCheck + timedelta(days=1)
-      
-      prevParsedTimes.append(timeToCheck)
-
-      # Find the next run time
-      if now <= timeToCheck:
-        nextRunInfo = (row, int(datetime.timestamp(timeToCheck)))
-        return nextRunInfo, relativedelta(timeToCheck, now)
-    
     # If there are no more runs for today, then move onto the next day :P
     nowIsTomorrow = now + timedelta(days=1)
     tomorrowDayOfWeek = nowIsTomorrow.strftime('%A')
@@ -177,6 +148,38 @@ class ScheduleParser:
       if now <= timeToCheck:
         nextRunInfo = (row, int(datetime.timestamp(timeToCheck)))
         return nextRunInfo, relativedelta(timeToCheck, now)
+
+  def doFindNextBossRunOfAnyType(self, dayToSearch : datetime, now : datetime) -> tuple[tuple[pd.DataFrame, int], relativedelta]:
+    """Do find the next boss run of any type.
+    
+    :param dayToSearch: The day to search through
+    :param now: The current time
+
+    :return: DataFrame row about the next boss run
+    :return: The Unix time associated with the next boss run
+    :return: The time delta from now until the next boss run
+    """
+    prevParsedTimes = []
+
+    # Loop through scheduled runs for yesterday (because of MCF schedule structure)
+    dayOfWeek = dayToSearch.strftime('%A')
+    for row in self.csvDf.loc[self.csvDf['day_of_week'] == dayOfWeek].itertuples():
+      timeToCheck = convertBasicTimeToDateTime(row.scheduled_run_time, dayToSearch)
+
+      # If the new time is smaller than the previous time, then because we know
+      # the CSV is sorted in ascending time, then we can make the assumption
+      # that this new time is actually the next day (unlike what MCF suggests)
+      if prevParsedTimes and timeToCheck < prevParsedTimes[-1]:
+        timeToCheck = timeToCheck + timedelta(days=1)
+
+      prevParsedTimes.append(timeToCheck)
+
+      # Find the next run time
+      if now <= timeToCheck:
+        nextRunInfo = (row, int(datetime.timestamp(timeToCheck)))
+        return nextRunInfo, relativedelta(timeToCheck, now)
+
+    return None, None
 
   def findNextBossRun(self, bossName : str) -> tuple[int, relativedelta]:
     """Given a boss type, find the next run from the current time.
@@ -205,7 +208,7 @@ class ScheduleParser:
     nextBasicRunTime = self.jsonData[tomorrowDayOfWeek][bossName][0]
     nextDtRunTime = convertBasicTimeToDateTime(nextBasicRunTime, nowIsTomorrow)
     return int(datetime.timestamp(nextDtRunTime)), relativedelta(nextDtRunTime, now)
-    
+  
   def doFindNextRunTime(self, bossName : str, dayToSearch : datetime, now : datetime) -> tuple[int, relativedelta]:
     """Do find the next run time.
 
@@ -232,5 +235,5 @@ class ScheduleParser:
       # Find the next run time
       if now <= timeToCheck:
         return int(datetime.timestamp(timeToCheck)), relativedelta(timeToCheck, now)
-    
+
     return None, None
