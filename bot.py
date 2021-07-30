@@ -1,10 +1,12 @@
+# External imports
 from discord.ext import commands
-import discord
 from json import load
 from os import environ
 from os.path import join
 from random import choice
 
+# Project imports
+from cogs.notify_daily_runs import NotifyDailyRuns
 from common.common import ScheduleParser
 from tasks.timed_reminder import TimedReminder
 
@@ -17,6 +19,8 @@ serverIdsFile.close()
 scheduleParser = ScheduleParser()
 
 bot = commands.Bot(command_prefix='!', case_insensitive=True)
+
+bot.add_cog(NotifyDailyRuns(bot, scheduleParser))
 
 @bot.event
 async def on_ready():
@@ -39,73 +43,5 @@ async def on_ready():
   await channel.send(choice(greetings))
 
   TimedReminder(bot, serverIds, scheduleParser).annoy.start()
-
-async def alertNextBoss(ctx : commands.Context, bossName : str):
-  """Answer the user request for the next time to conquer the target boss.
-
-  :param ctx: The context of this command
-  :param bossName: The name of the boss to attack
-  """
-  if bossName != 'Any':
-    timestamp, rd = scheduleParser.findNextBossRun(bossName)
-    await ctx.channel.send(
-      f"{ctx.author.mention} Next {bossName} in {rd.hours} hours and {rd.minutes} minutes "
-      f"from now at <t:{timestamp}:t>"
-    )
-  else:
-    nextRunInfo, rd = scheduleParser.findNextBossRunOfAnyType()
-    await ctx.channel.send(
-      f"{ctx.author.mention} Next {nextRunInfo[0].boss_name} in {rd.hours} hours and {rd.minutes} minutes "
-      f"from now at <t:{nextRunInfo[-1]}:t>"
-    )
-
-@bot.command()
-async def nextVP(ctx : commands.Context):
-  await alertNextBoss(ctx, 'VP')
-
-@bot.command()
-async def nextCFO(ctx : commands.Context):
-  await alertNextBoss(ctx, 'CFO')
-
-@bot.command()
-async def nextCJ(ctx : commands.Context):
-  await alertNextBoss(ctx, 'CJ')
-
-@bot.command()
-async def nextCEO(ctx : commands.Context):
-  await alertNextBoss(ctx, 'CEO')
-
-@bot.command(aliases=['next', 'nextBoss', 'nextRun'])
-async def nextBossRun(ctx : commands.Context):
-  await alertNextBoss(ctx, 'Any')
-
-@bot.command(aliases=['remindMe'])
-async def allRuns(ctx : commands.Context):
-  relativeDay = "today's early morning"
-
-  # Find all runs for today that may be categorized as yesterday's runs according to MMO Central Forums
-  allRemainingRuns = scheduleParser.findAllRuns(peekYesterday=True)
-
-  # Look at today's runs
-  if allRemainingRuns.empty:
-    relativeDay = "today"
-    allRemainingRuns = scheduleParser.findAllRuns()
-
-  # If there are no more runs for today, look to tomorrow
-  if allRemainingRuns.empty:
-    relativeDay = "tomorrow"
-    allRemainingRuns = scheduleParser.findAllRuns(forTomorrow=True)
-  
-  min_array_val = min(allRemainingRuns.index.values)
-  max_array_val = max(allRemainingRuns.index.values)
-  embed = discord.Embed(
-            title="CCG Runs", description="Current CCG runs for " + relativeDay
-        )
-  for i in range(min_array_val, max_array_val+1):
-    embed.add_field(
-      name=allRemainingRuns["boss_name"][i],
-      value=f"<t:{allRemainingRuns['date_time'][i]}:F>"
-    )
-  await ctx.channel.send(embed=embed)
 
 bot.run(auth)
