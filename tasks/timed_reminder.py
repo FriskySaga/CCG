@@ -36,6 +36,7 @@ class TimedReminder(commands.Cog):
       await channel.send(
         f"{ccgRunRemindee.mention} {self.nextRunInfo[0].boss_name} within the next "
         f"{minutesBeforeEventToRemind} minutes at "
-        f"{nextRunTime.strftime('%I:%M %p')} {self.scheduleParser.timezoneInfo.timezoneString} Time.")
+        f"<t:{nextRunTime}:t>"
+      )
       self.annoyed = True
 

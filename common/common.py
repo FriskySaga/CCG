@@ -127,13 +127,13 @@ class ScheduleParser:
 
     dateTimeList = []
     for scheduledRunTime in remainingRuns['scheduled_run_time']:
-      newTime = convertBasicTimeToDateTime(scheduledRunTime, targetDay)
+      newTime = int(datetime.timestamp(convertBasicTimeToDateTime(scheduledRunTime, targetDay)))
 
       # If the new time is smaller than the previous time, then because we know
       # the CSV is sorted in ascending time, then we can make the assumption
       # that this new time is actually the next day (unlike what MCF suggests)
       if dateTimeList and newTime < dateTimeList[-1]:
-        newTime = newTime + timedelta(days=1)
+        newTime = newTime + 86400 # number of seconds in a day
 
       dateTimeList.append(newTime)
 
@@ -142,7 +142,7 @@ class ScheduleParser:
     remainingRuns.reset_index(drop=True, inplace=True)
 
     remainingRuns = remainingRuns.assign(date_time=dateTimeSeries)
-    remainingRuns = remainingRuns.loc[remainingRuns['date_time'] >= now]
+    remainingRuns = remainingRuns.loc[remainingRuns['date_time'] >= datetime.timestamp(now)]
 
     return remainingRuns
 
@@ -172,8 +172,8 @@ class ScheduleParser:
 
       # Find the next run time
       if now <= timeToCheck:
-        nextRunInfo = (row, timeToCheck) 
-        return nextRunInfo, relativedelta(nextRunInfo[-1], now)
+        nextRunInfo = (row, int(datetime.timestamp(timeToCheck)))
+        return nextRunInfo, relativedelta(timeToCheck, now)
 
     # Loop through scheduled runs for today (sorted by ascending time)
     prevParsedTimes = []
@@ -191,8 +191,8 @@ class ScheduleParser:
 
       # Find the next run time
       if now <= timeToCheck:
-        nextRunInfo = (row, timeToCheck) 
-        return nextRunInfo, relativedelta(nextRunInfo[-1], now)
+        nextRunInfo = (row, int(datetime.timestamp(timeToCheck)))
+        return nextRunInfo, relativedelta(timeToCheck, now)
     
     # If there are no more runs for today, then move onto the next day :P
     nowIsTomorrow = now + timedelta(days=1)
@@ -202,8 +202,8 @@ class ScheduleParser:
 
       # Find the next run time
       if now <= timeToCheck:
-        nextRunInfo = (row, timeToCheck) 
-        return nextRunInfo, relativedelta(nextRunInfo[-1], now)
+        nextRunInfo = (row, int(datetime.timestamp(timeToCheck)))
+        return nextRunInfo, relativedelta(timeToCheck, now)
 
   def findNextBossRun(self, bossName : str) -> tuple[dict, relativedelta]:
     """Given a boss type, find the next run from the current time.
@@ -233,7 +233,7 @@ class ScheduleParser:
 
       # Find the next run time
       if now <= timeToCheck:
-        return timeToCheck, relativedelta(timeToCheck, now)
+        return int(datetime.timestamp(timeToCheck)), relativedelta(timeToCheck, now)
 
     # Look for the next boss run of this type for today
     prevParsedTimes = []
@@ -251,12 +251,12 @@ class ScheduleParser:
 
       # Find the next run time
       if now <= timeToCheck:
-        return timeToCheck, relativedelta(timeToCheck, now)
+        return int(datetime.timestamp(timeToCheck)), relativedelta(timeToCheck, now)
     
     # Move onto the next day if there are no more runs for the day
     nowIsTomorrow = now + timedelta(days=1)
     tomorrowDayOfWeek = nowIsTomorrow.strftime('%A')
     nextBasicRunTime = self.jsonData[tomorrowDayOfWeek][bossName][0]
     nextDtRunTime = convertBasicTimeToDateTime(nextBasicRunTime, nowIsTomorrow)
-    return nextDtRunTime, relativedelta(nextDtRunTime, now)
+    return int(datetime.timestamp(nextDtRunTime)), relativedelta(nextDtRunTime, now)
     

@@ -47,15 +47,17 @@ async def alertNextBoss(ctx : commands.Context, bossName : str):
   :param bossName: The name of the boss to attack
   """
   if bossName != 'Any':
-    scheduledTime, rd = scheduleParser.findNextBossRun(bossName)
+    timestamp, rd = scheduleParser.findNextBossRun(bossName)
     await ctx.channel.send(
-      f"{ctx.author.mention} Next {bossName} in {rd.hours} hours and {rd.minutes} "
-      f"minutes from now at {scheduledTime.strftime('%I:%M %p')} {scheduleParser.timezoneInfo.timezoneString} Time.")
+      f"{ctx.author.mention} Next {bossName} in {rd.hours} hours and {rd.minutes} minutes "
+      f"from now at <t:{timestamp}:t>"
+    )
   else:
     nextRunInfo, rd = scheduleParser.findNextBossRunOfAnyType()
     await ctx.channel.send(
-      f"{ctx.author.mention} Next {nextRunInfo[0].boss_name} in {rd.hours} hours and {rd.minutes} "
-      f"minutes from now at {nextRunInfo[-1].strftime('%I:%M %p')} {scheduleParser.timezoneInfo.timezoneString} Time.")
+      f"{ctx.author.mention} Next {nextRunInfo[0].boss_name} in {rd.hours} hours and {rd.minutes} minutes "
+      f"from now at <t:{nextRunInfo[-1]}:t>"
+    )
 
 @bot.command()
 async def nextVP(ctx : commands.Context):
@@ -102,7 +104,7 @@ async def allRuns(ctx : commands.Context):
   for i in range(min_array_val, max_array_val+1):
     embed.add_field(
       name=allRemainingRuns["boss_name"][i],
-      value=f"{allRemainingRuns['date_time'][i].strftime('%I:%M %p')} {scheduleParser.timezoneInfo.timezoneString} Time"
+      value=f"<t:{allRemainingRuns['date_time'][i]}:F>"
     )
   await ctx.channel.send(embed=embed)
 
