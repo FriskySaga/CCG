@@ -1,4 +1,3 @@
-from datetime import timedelta
 from discord.ext import commands, tasks
 from discord.ext.commands.bot import Bot
 

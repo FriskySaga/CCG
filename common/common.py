@@ -78,33 +78,6 @@ class ScheduleParser:
     self.csvDf = readCsvSchedule(self.pathToSchedules, self.timezoneInfo)
     self.jsonData = readJsonSchedule(self.pathToSchedules, self.timezoneInfo)
 
-  def setTimezone(self, newTimezone : str) -> bool:
-    """Set the timezone.
-
-    :param newTimezone: Indicate the new timezone to use
-    
-    :return: Whether the requested timezone is supported
-    """
-    newTimezone = newTimezone.lower().split()
-    if any(x in newTimezone for x in ['ct', 'cst', 'central']):
-      self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Central'), 'central')
-    elif any(x in newTimezone for x in ['et', 'est', 'eastern']):
-      self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Eastern'), 'eastern')
-    elif any(x in newTimezone for x in ['mt', 'mst', 'mountain']):
-      self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Mountain'), 'mountain')
-    elif any(x in newTimezone for x in ['pt', 'pst', 'pacific']):
-      self.timezoneInfo = TimezoneInfo(pytz.timezone('US/Pacific'), 'pacific')
-    elif any(x in newTimezone for x in ['gmt', 'greenwich', 'mean']):
-      self.timezoneInfo = TimezoneInfo(pytz.timezone('Greenwich'), 'greenwich_mean')
-    elif any(x in newTimezone for x in ['bst', 'british', 'summer']):
-      self.timezoneInfo = TimezoneInfo(pytz.timezone('Europe/London'), 'british_summer')
-    else:
-      return False
-    
-    # Load in the new timezone schedule data
-    self.readSchedules()
-    return True
-
   def findAllRuns(self, peekYesterday = False, forTomorrow = False) -> pd.DataFrame:
     """Find all remaining runs for today or tomorrow if there are no more runs left for today.
 
