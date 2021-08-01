@@ -37,6 +37,39 @@ class NotifyDailyRuns(commands.Cog):
       )
     await ctx.channel.send(embed=embed)
 
+  @commands.command(aliases=['allRunsToText', 'allRunsAsText'])
+  async def printAllRuns(self, ctx : commands.Context):
+    relativeDay = "today's early morning"
+
+    # Find all runs for today that may be categorized as yesterday's runs according to MMO Central Forums
+    allRemainingRuns = self.scheduleParser.findAllRuns(peekYesterday=True)
+
+    # Look at today's runs
+    if allRemainingRuns.empty:
+      relativeDay = "today"
+      allRemainingRuns = self.scheduleParser.findAllRuns()
+
+    # If there are no more runs for today, look to tomorrow
+    if allRemainingRuns.empty:
+      relativeDay = "tomorrow"
+      allRemainingRuns = self.scheduleParser.findAllRuns(forTomorrow=True)
+    
+    min_array_val = min(allRemainingRuns.index.values)
+    max_array_val = max(allRemainingRuns.index.values)
+
+    s = ""
+    for x in range(min_array_val, max_array_val+1):
+      s += (f"**{allRemainingRuns['boss_name'][x]}**\n"
+            f"<t:{allRemainingRuns['date_time'][x]}:F>\n\n")
+
+    await ctx.channel.send(
+      "```\n"
+      "**CCG Runs**\n"
+      f"Current runs for {relativeDay}\n\n"
+      f"{s}\n"
+      "```"
+    )
+
   @commands.command(aliases=['next', 'nextBoss', 'nextRun'])
   async def nextBossRun(self, ctx : commands.Context):
     await self.alertNextBoss(ctx, 'Any')
